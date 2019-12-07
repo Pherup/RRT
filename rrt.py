@@ -61,14 +61,14 @@ Display the RRT and Path
 def displayRRTandPath(points, adjListMap, path, robotStart=None, robotGoal=None, polygons=None):
     _, ax = setupPlot()
     if robotStart != None and robotGoal != None and polygons != None:
-	    patch = createPolygonPatch(robotStart, 'green')
-	    ax.add_patch(patch)    
-	    patch = createPolygonPatch(robotGoal, 'red')
-	    ax.add_patch(patch)    
-	    for p in range(0, len(polygons)):
-	    	print("adding patch")
-	    	patch = createPolygonPatch(polygons[p], 'gray')
-	    	ax.add_patch(patch)    
+        patch = createPolygonPatch(robotStart, 'green')
+        ax.add_patch(patch)    
+        patch = createPolygonPatch(robotGoal, 'red')
+        ax.add_patch(patch)    
+        for p in range(0, len(polygons)):
+            print("adding patch")
+            patch = createPolygonPatch(polygons[p], 'gray')
+            ax.add_patch(patch)    
     
     print("Drawing Path Now")
     drawLines(adjListMap, points, _, ax)
@@ -78,26 +78,24 @@ def displayRRTandPath(points, adjListMap, path, robotStart=None, robotGoal=None,
     return
 
 def drawLines(adjMap, vertices, fig, ax):
-	print("vertices: " + str(vertices))
-	for v in vertices.keys():
-	    print("adjMap[v]: " + str(adjMap[v]))
-	    for label in adjMap[v]:
-            # print('label: ', label)
-            # print('cost: ', cost)
-            # print('vertex of label: ', vertices[label])
-            # print("line: " + str(vertices[v]) + " , " + str(vertices[label]))
-	        newline(vertices[v], vertices[label], 'black')
+    print("vertices: " + str(vertices))
+    for v in vertices:
+        print("adjMap["+str(v)+"]: " + str(adjMap[v]))
+        for label in adjMap[v]:
+            print("line: " + str(v) + " , " + str(label))
+            newline(vertices[v], vertices[label], 'black')
 
 def newline(p1, p2, c):
     ax = plt.gca()
     line = [(p1[0], p1[1]), (p2[0], p2[1])]
     (linxs, linys) = zip(*line)
-    ax.add_line(mlines.Line2D(linxs, linys, linewidth=2, color=c))
+    ax.add_line(mlines.Line2D(linxs, linys, linewidth=1, color=c))
 
 def drawpath(path, vertices, fig, ax):
     curr = path[0]
     for i in range(0,len(path)):
         if i != len(path)-1:
+            print("path line: " + str(vertices[path[i]])+", "+str(vertices[path[i+1]]))
             newline(vertices[path[i]], vertices[path[i+1]], 'orange')
 
 
@@ -111,84 +109,68 @@ def growSimpleRRT(points):
     pointCount = 1
 
     for key in points:
-    	#print("key: " + str(key) + " point: " + str(points[key]))
-    	newP = points[key]
-
-    	if key == 1:
-    		newPoints[1] = points[1]
-    		#print("adding root: newPoints: "+ str(newPoints))
-    		adjListMap[1] = []
-    		#print("adding root: adjMap: " + str(adjListMap))
-    	else:
-    		minDist = float('inf')
-    		closestPoint = [] ## [x, y]
-    		closestEdge = [] ## [p, q]
-    		for sourceNodeKey in adjListMap:
-    			p = newPoints[sourceNodeKey]
-    			#print("sourceKey: " + str(sourceNodeKey)+ " p: "+ str(p))
-    			for destNodeKey in adjListMap[sourceNodeKey]:
-    				#print("destNodeKey: "+str(destNodeKey))
-    				q = newPoints[destNodeKey]
-    				(qN, dist) = findNearestPointOnEdge(p, q, newP)
-    				#print("dist "+str(dist))
-    				#print(qN)
-    				if dist < minDist:
-    					minDist = dist
-    					closestPoint = qN
-    					closestEdge = [p, q]
-    		'''fix adj map here if new pt is p ... if new pt is q ...'''
-    		if minDist == float('inf'):
-    			pointCount = pointCount + 1 
-    			newPoints[key] =  points[key]
-    			adjListMap[key] = [1]
-    			adjListMap[1] = [key]
-    		else:
-	    		if closestEdge != [] and (closestPoint == closestEdge[0] or closestPoint == closestEdge[1]):
-	    			pointCount = pointCount + 1
-	    			newPoints[pointCount] = newP
-	    			adjListMap[pointCount] = [getPointKey(closestPoint, newPoints)]
-	    		else:#new pt on the edge
-	    			#add the new point and make it adj to the intersecting point
-	    			pointCount = pointCount + 1
-	    			newPoints[pointCount] = newP
-	    			adjListMap[pointCount] = [pointCount+1]
-
-	    			#then add adjacencies for the two points colinear with the closest point
-	    			pointCount = pointCount + 1
-	    			newPoints[pointCount] = closestPoint
-	    			adjListMap[pointCount] = [pointCount - 1] #adj to the new point
-	    			pKey = getPointKey(closestEdge[0], newPoints)
-	    			qKey = getPointKey(closestEdge[1], newPoints)
-	    			adjListMap[pointCount].append(pKey)
-	    			adjListMap[pointCount].append(qKey)
-
-	    			#fix adj list to account for new point on line segment
-
-	    			adjListMap[pKey].append(pointCount)
-	    			adjListMap[qKey].append(pointCount)
-	    			try:
-	    				adjListMap[pKey].remove(qKey)
-	    			except Exception as e:
-	    				raise e
-    				try:
-    					adjListMap[qKey].remove(pKey)
-    				except Exception as e:
-    					print("")
+        newP = points[key]
+        if key == 1:
+            newPoints[1] = points[1]
+            adjListMap[1] = []
+        else:
+            minDist = float('inf')
+            closestPoint = [] ## [x, y]
+            closestEdge = [] ## [p, q]
+            for sourceNodeKey in adjListMap:
+                p = newPoints[sourceNodeKey]
+                for destNodeKey in adjListMap[sourceNodeKey]:
+                    q = newPoints[destNodeKey]
+                    (qN, dist) = findNearestPointOnEdge(p, q, newP)
+                    if dist < minDist:
+                        minDist = dist
+                        closestPoint = qN
+                        closestEdge = [p, q]
+            if minDist == float('inf'):
+                pointCount = pointCount + 1 
+                newPoints[key] =  points[key]
+                adjListMap[key] = [1]
+                adjListMap[1] = [key]
+            else:
+                if closestEdge != [] and (closestPoint == closestEdge[0] or closestPoint == closestEdge[1]):
+                    pointCount = pointCount + 1
+                    newPoints[pointCount] = newP
+                    adjListMap[pointCount] = [getPointKey(closestPoint, newPoints)]
+                else:#new pt on the edge
+                    pointCount = pointCount + 1
+                    newPoints[pointCount] = newP
+                    adjListMap[pointCount] = [pointCount+1]
+                    pointCount = pointCount + 1
+                    newPoints[pointCount] = closestPoint
+                    adjListMap[pointCount] = [pointCount - 1] #adj to the new point
+                    pKey = getPointKey(closestEdge[0], newPoints)
+                    qKey = getPointKey(closestEdge[1], newPoints)
+                    adjListMap[pointCount].append(pKey)
+                    adjListMap[pointCount].append(qKey)
+                    adjListMap[pKey].append(pointCount)
+                    adjListMap[qKey].append(pointCount)
+                    try:
+                        adjListMap[pKey].remove(qKey)
+                    except Exception as e:
+                        raise e
+                    try:
+                        adjListMap[qKey].remove(pKey)
+                    except Exception as e:
+                        print("")
     return newPoints, adjListMap
 '''
 returns the key value of a given point
 '''
 def getPointKey(p, points):
-	for i in points:
-		if p == points[i]:
-			return i
-
-	return -1
+    for i in points:
+        if p == points[i]:
+            return i
+    return -1
 '''
 Calc square distance between two points
 '''
 def squaredDist(p, q):
-	return (p[0] - q[0])**2 + (p[1] - q[1])**2
+    return (p[0] - q[0])**2 + (p[1] - q[1])**2
 
 '''
 Calc Nearest Point On Edge
@@ -208,9 +190,9 @@ def findNearestPointOnEdge(p, q, q_rand):
     y_nearest = m1*x_nearest + b1
 
     if (x_nearest < max(x1, x2) and x_nearest > min(x1, x2)) and (y_nearest < max(y1, y2) and y_nearest > min(y1, y2)):
-    	return ([x_nearest, y_nearest], squaredDist(q_rand, [x_nearest, y_nearest]))
+        return ([x_nearest, y_nearest], squaredDist(q_rand, [x_nearest, y_nearest]))
     if squaredDist(p, q_rand) < squaredDist(q, q_rand):
-    	return (p, squaredDist(p, q_rand))
+        return (p, squaredDist(p, q_rand))
 
     return (q, squaredDist(q, q_rand))
 
@@ -219,23 +201,23 @@ def findNearestPointOnEdge(p, q, q_rand):
 Perform basic search 
 '''
 def basicSearch(tree, start, goal):
-	visited = [0]*len(tree)
-	visited[1] = 1
-	return dfs(tree, start, goal, visited)
+    visited = [0]*len(tree)
+    visited[1] = 1
+    return dfs(tree, start, goal, visited)
 
 '''
 recursive dfs helper
 '''
 def dfs(tree, start, goal, visited):
-	if start == goal:
-		return [goal]
-	for k in [i for i in tree[start] if visited[i] == 0]:
-		visited[k] = 1
-		path = dfs(tree, k, goal, visited)
-		if path != []:
-			path.insert(0,start)
-			return path
-	return []
+    if start == goal:
+        return [goal]
+    for k in [i for i in tree[start] if visited[i] == 0]:
+        visited[k] = 1
+        path = dfs(tree, k, goal, visited)
+        if path != []:
+            path.insert(0,start)
+            return path
+    return []
 
 '''
 Collision checking
@@ -337,14 +319,16 @@ def main(filename, x1, y1, x2, y2, display=''):
     print("")
 
     # Your visualization code 
-    if display == 'display':
+    if display == 'display2':
         displayRRTandPath(points, adjListMap, path) 
 
     # Solve a real RRT problem
     points, adjListMap, path = RRT(robot, obstacles, (x1, y1), (x2, y2))
     
     # Your visualization code 
-    if display == 'display':
+    if display == 'display3':
+        robotStart = [(x + x1, y + y1) for x, y in robot]
+        robotGoal = [(x + x2, y + y2) for x, y in robot]
         displayRRTandPath(points, adjListMap, path, robotStart, robotGoal, obstacles) 
 
 
