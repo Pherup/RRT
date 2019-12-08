@@ -226,10 +226,37 @@ def isCollisionFree(robot, point, obstacles):
     print("robot: " + str(robot))
     print("point: " + str(point))
     print("obstacles: " + str(obstacles))  
+    for x in range(0,len(robot)):
+        X1 = robot[x][0]+point[0]
+        Y1 = robot[x][1]+point[1]
+        if(x == len(robot)-1):
+            X2 = robot[0][0]+point[0]
+            Y2 = robot[0][1]+point[1]
+        else:
+            X2 = robot[x+1][0]+point[0]
+            Y2 = robot[x+1][1]+point[1]
+        for obs in obstacles:
+            for y in range(0,len(obs)):
+                X3 = obs[y][0]
+                Y3 = obs[y][1]
+                if (y == len(obs) - 1):
+                    X4 = robot[0][0]
+                    Y4 = robot[0][1]
+                else:
+                    X4 = robot[y + 1][0]
+                    Y4 = robot[y + 1][1]
+                if (intersect([X1,Y1], [X2,Y2], [X3, Y3], [X4, Y4]) == True):
+                    return True
 
 
 
     return False
+
+def ccw(A,B,C):
+    return ((C[1]-A[1])) * (B[0]-A[0]) > ((B[1]-A[1]) * (C[0]-A[0]))
+
+def intersect(A, B, C, D):
+    return ccw(A,C,D) != ccw(B,C,D) and ccw(A,B,C) != ccw(A,B,D)
 
 '''
 The full RRT algorithm
