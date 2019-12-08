@@ -239,6 +239,32 @@ def RRT(robot, obstacles, startPoint, goalPoint):
     points = dict()
     tree = dict()
     path = []
+    points = dict()
+    tree = dict()
+    path = []
+    points[1] = startPoint
+    modobstacles = obstacles[0:len(obstacles)-2]#so as to not include the surrounding area in point calc
+    for init in range(0,10):
+        x = np.random.ranf()*10 #we are given that the area is from 0 to 10 in a box
+        y = np.random.ranf()*10
+        for obstacle in modobstacles:
+            tempArray = np.empty((0,2),float)
+            for obs in range(0,len(obstacle)):
+                    tempArray = np.append(tempArray, np.array([obstacle[obs]]),axis = 0)
+            tempArray = np.append(tempArray, np.array([obstacle[0]]), axis=0)
+            tempPath = mpPath.Path(tempArray)
+            if(tempPath.contains_point((x,y))):
+                break
+            else:
+                pass
+        if (tempPath.contains_point((x, y)) == False):
+            points[len(points)+1]= (x,y)
+    
+    points[goal] = goalPoint
+    points, tree = growSimpleRRT(points)
+    goal = len(points)+1 #since after growSimpleRRT the last value of points will have the value of the final place
+    path = basicSearch(tree, 1, goal)
+
     # Your code goes here.
     
     return points, tree, path
