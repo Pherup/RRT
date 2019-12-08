@@ -225,9 +225,30 @@ Collision checking
 def isCollisionFree(robot, point, obstacles):
     print("robot: " + str(robot))
     print("point: " + str(point))
-    print("obstacles: " + str(obstacles))  
+    print("obstacles: " + str(obstacles))
+    print("testing am here")
+    for x in range(0,len(robot)):
+        X1 = robot[x][0]+point[0]
+        Y1 = robot[x][1]+point[1]
+        if(x == len(robot)-1):
+            X2 = robot[0][0]+point[0]
+            Y2 = robot[0][1]+point[1]
+        else:
+            X2 = robot[x+1][0]+point[0]
+            Y2 = robot[x+1][1]+point[1]
 
-
+        for obs in obstacles:
+            for y in range(0,len(obs)):
+                X3 = obs[y][0]
+                Y3 = obs[y][1]
+                if (y == len(obs) - 1):
+                    X4 = robot[0][0]
+                    Y4 = robot[0][1]
+                else:
+                    X4 = robot[y + 1][0]
+                    Y4 = robot[y + 1][1]
+                if (intersect([X1,Y1], [X2,Y2], [X3, Y3], [X4, Y4]) == True):
+                    return True
 
     return False
 
@@ -235,13 +256,42 @@ def isCollisionFree(robot, point, obstacles):
 The full RRT algorithm
 '''
 def RRT(robot, obstacles, startPoint, goalPoint):
-
     points = dict()
     tree = dict()
     path = []
+    points[1] = startPoint
+    modobstacles = obstacles[0:len(obstacles)-2]#so as to not include the surrounding area in point calc
+    for init in range(0,20):
+        x = np.random.ranf()*10 #we are given that the area is from 0 to 10 in a box
+        y = np.random.ranf()*10
+        for obstacle in modobstacles:
+            tempArray = np.empty((0,2),float)
+            for obs in range(0,len(obstacle)):
+                    tempArray = np.append(tempArray, np.array([obstacle[obs]]),axis = 0)
+            tempArray = np.append(tempArray, np.array([obstacle[0]]), axis=0)
+            tempPath = mpPath.Path(tempArray)
+            if(tempPath.contains_point((x,y))):
+                break
+            else:
+                pass
+        if (tempPath.contains_point((x, y)) == False):
+            points[len(points)+1]= (x,y)
+    goal = len(points)+1
+    points[goal] = goalPoint
+    points, tree = growSimpleRRT(points)
+    path = basicSearch(tree, 1, goal)
+
+
     # Your code goes here.
     
     return points, tree, path
+
+def ccw(A,B,C):
+    return ((C[1]-A[1])) * (B[0]-A[0]) > ((B[1]-A[1]) * (C[0]-A[0]))
+
+def intersect(A, B, C, D):
+    return ccw(A,C,D) != ccw(B,C,D) and ccw(A,B,C) != ccw(A,B,D)
+
 
 def main(filename, x1, y1, x2, y2, display=''):
     # Read data and parse polygons
